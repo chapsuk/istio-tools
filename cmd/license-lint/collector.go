@@ -57,17 +57,19 @@ type module struct {
 	Dir     string         `json:"Dir"`
 }
 
-func getLicenses() ([]*moduleInfo, error) {
+func getLicenses(gomod string) ([]*moduleInfo, error) {
 	// find all the modules this repo depends on
-	mods, err := getDependentModules()
+	mods, err := getDependentModules(gomod)
 	if err != nil {
 		return nil, err
 	}
 
 	var result []*moduleInfo
+	pwd, _ := os.Getwd()
 	for _, m := range mods {
-
-		if m.Dir == "" {
+		if gomod == "vendor" {
+			m.Dir = pwd + "/vendor/" + m.Path
+		} else if m.Dir == "" {
 			return nil, fmt.Errorf("couldn't find content of module %s (did you forget to do `go mod download`?)", m.Path)
 		}
 
@@ -117,8 +119,8 @@ func getLicenses() ([]*moduleInfo, error) {
 	return result, nil
 }
 
-func getDependentModules() ([]moduleDepInfo, error) {
-	cmd := exec.Command("go", "list", "-mod=readonly", "-deps", "-test", "-json", "./...")
+func getDependentModules(gomod string) ([]moduleDepInfo, error) {
+	cmd := exec.Command("go", "list", "-mod="+gomod, "-deps", "-test", "-json", "./...")
 
 	// Turn on Go module support
 	cmd.Env = os.Environ()

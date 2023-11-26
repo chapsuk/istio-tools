@@ -27,11 +27,13 @@ func main() {
 	var csv bool
 	var mirror bool
 	var config string
+	var gomod string
 
 	flag.BoolVar(&report, "report", false, "Generate a report of all license usage.")
 	flag.BoolVar(&dump, "dump", false, "Generate a dump of all licenses used.")
 	flag.BoolVar(&csv, "csv", false, "Generate a report of all license usage in CSV format.")
 	flag.BoolVar(&mirror, "mirror", false, "Creates a 'licenses' directory with the licenses of all dependencies.")
+	flag.StringVar(&gomod, "gomod", "readonly", "Set go mod flag value to list command")
 	flag.StringVar(&config, "config", "", "Path to config file.")
 	flag.Parse()
 
@@ -44,7 +46,7 @@ func main() {
 		}
 	}
 
-	modules, err := getLicenses()
+	modules, err := getLicenses(gomod)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 		os.Exit(1)
